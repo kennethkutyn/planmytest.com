@@ -38,11 +38,22 @@ body {
 .header {
   text-align: center;
   margin-bottom: 20px;
+  position: relative;
+}
+.header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.header .brand .logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 .header .share-wrap {
   position: absolute;
-  top: 18px;
-  right: 80px;
+  top: -20px;
+  right: -20px;
   width: 100px;
 }
 .copy-toast {
@@ -72,6 +83,7 @@ body {
   line-height: 1.2;
   margin: 0 0 6px;
   letter-spacing: -0.01em;
+  font-family: 'Poppins', sans-serif;
 }
 .subtitle {
   margin: 0;
@@ -444,6 +456,8 @@ body.hide-metric-desc .metric-desc { display: none !important; }
   .layout { grid-template-columns: 1fr; }
   .inputs { max-width: none; }
   .form-field { grid-column: 1 / -1; }
+  /* Ensure second column stacks below the first on mobile */
+  .inputs, .outputs { grid-column: 1; }
 }
 
 
