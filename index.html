@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Experiment Planner</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>PlanMyTest.com</h1>
+        <p class="subtitle">Enter your inputs. We'll design the output next.</p>
+        <div class="share-wrap">
+          <button type="button" class="icon-button" id="share-btn" aria-label="Copy sharable link" title="Copy sharable link">
+            <span aria-hidden="true">Share</span>
+          </button>
+          <div class="copy-toast" id="share-toast" role="status" aria-live="polite">Copied to Clipboard</div>
+        </div>
+      </header>
+
+      <section class="layout">
+        <div class="inputs">
+        <form id="experiment-form" novalidate>
+          <div class="card">
+            <div class="section">
+              <h2 class="section-title">Display Options</h2>
+              <div class="form-grid">
+                <div class="form-field full">
+                  <div class="switch-wrap">
+                    <span class="switch-text">Show metric descriptions</span>
+                    <input class="switch-input" type="checkbox" id="showMetricDesc" name="showMetricDesc" checked role="switch" aria-checked="true" />
+                    <label class="switch" for="showMetricDesc" aria-hidden="true">
+                      <span class="switch-track"></span>
+                      <span class="switch-thumb"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section">
+              <h2 class="section-title">Users</h2>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="visitorsPerDay">Users per Day</label>
+                  <input type="number" id="visitorsPerDay" name="visitorsPerDay" inputmode="numeric" min="0" step="1" value="5000" />
+                </div>
+                <div class="form-field">
+                  <label for="visitorsPerWeek">Users per Week</label>
+                  <input type="number" id="visitorsPerWeek" name="visitorsPerWeek" inputmode="numeric" min="0" step="1" value="25000" />
+                </div>
+                <div class="form-field">
+                  <label for="visitorsPerMonth">Users per Month</label>
+                  <input type="number" id="visitorsPerMonth" name="visitorsPerMonth" inputmode="numeric" min="0" step="1" value="75000" />
+                </div>
+                <div class="form-field">
+                  <label for="visitorsPer2Months">Users per 2 Months</label>
+                  <input type="number" id="visitorsPer2Months" name="visitorsPer2Months" inputmode="numeric" min="0" step="1" value="150000" />
+                </div>
+              </div>
+
+            </div>
+            <div class="metric-desc">Provide the number of cumulative unique users over each of the following periods. Linear interpolation is used between the provided values. </div>
+
+          </div>
+
+          <div class="card collapsible-card" id="stats-card">
+            <div class="card-header">
+              <h2 class="section-title">Statistical settings</h2>
+              <button type="button" class="icon-button" id="stats-toggle" aria-expanded="false" aria-controls="stats-collapsible" title="Expand">
+                <span class="caret" aria-hidden="true">^</span>
+              </button>
+            </div>
+            <div class="collapsible" id="stats-collapsible" aria-hidden="true">
+              <div class="collapsible-inner">
+                <div class="section">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label for="power">Power</label>
+                      <input type="number" id="power" name="power" min="0" max="1" step="0.01" value="0.8" />
+                    </div>
+                    <div class="form-field">
+                      <label for="confidence">Confidence</label>
+                      <input type="number" id="confidence" name="confidence" min="0" max="1" step="0.01" value="0.95" />
+                    </div>
+                    <div class="form-field full">
+                      <div class="switch-wrap">
+                        <span class="switch-text">Apply Bonferroni correction</span>
+                        <input class="switch-input" type="checkbox" id="bonferroni" name="bonferroni" checked role="switch" aria-checked="true" />
+                        <label class="switch" for="bonferroni" aria-hidden="true">
+                          <span class="switch-track"></span>
+                          <span class="switch-thumb"></span>
+                        </label>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+                <div class="metric-desc"><b>Bonferroni Correction:</b> Experiments with more than 2 variants have a higher error rate (each comparison is a chance to make a mistake). A Bonferroni Correction automatically adjust the number of users required to keep error rate constant when comparing more than 2 variants (and there is no impact to tests with only 2 variants).</div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section">
+              <h2 class="section-title">Experiment Design</h2>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="businessCycleDays">Business Cycle</label>
+                  <div class="field-with-suffix">
+
+                  <input type="number" id="businessCycleDays" name="businessCycleDays" min="1" step="1" value="7" />
+                  <span class="suffix">days</span>
+                  </div>
+          
+                </div>
+                <div class="form-field">
+                  <label for="numVariants">Number of Variants</label>
+                  <input type="number" id="numVariants" name="numVariants" min="2" step="1" value="2" />
+                </div>
+                <div class="form-field">
+                  <label for="baselineCRDisplay">Baseline Conversion Rate</label>
+                  <div class="field-with-suffix">
+                    <input type="hidden" id="baselineCR" name="baselineCR" value="0.1" />
+                    <input type="number" id="baselineCRDisplay" min="0" max="100" step="1" inputmode="numeric" />
+                    <span class="suffix">%</span>
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label for="mdeDisplay">MDE (Relative)</label>
+                  <div class="field-with-suffix">
+                    <input type="hidden" id="mde" name="mde" value="0.05" />
+                    <input type="number" id="mdeDisplay" min="0" max="100" step="1" inputmode="numeric" />
+                    <span class="suffix">%</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+            <div class="metric-desc"><b>Business Cycle:</b> If you have different types of users, or they behavaive differently over time, you should avoid making experiment decisions on a fraction of a cycle. Instead, plan you test for a whole number of cycles.  </div>
+            <br class="metric-desc">
+            <div class="metric-desc"><b>Number of Variants:</b> All else being equal, more variants will take more time to reach statistical significance. However, if additional variants mean one of them has a larger effect, this could let you use a larger value for MDE, thus shortening the experiment overall.   </div>
+            <br class="metric-desc">
+            <div class="metric-desc"><b>Baseline Conversion Rate:</b> This is the conversion rate of the experiment's primary metric, expressed as conversions / impressions * 100. A lower baseline conversion rate will be harder to detect changes against, so you can get results sooner with a higher baseline conversion rate.   </div>
+            <br class="metric-desc">
+            <div class="metric-desc"><b>MDE:</b> This is the minimum size of effect (caused by the treatment variant) that you want to be able to detect, relative to the conversion rate of the baseline. In other words, what is the smallest impact that is meaningful and worht running the test for. A smaller MDE will mean that the experiment takes longer to run. </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="ghost" id="plan-btn">Plan my experiment</button>
+          </div>
+        </form>
+        </div>
+
+        <aside class="outputs" aria-live="polite">
+          <div class="card">
+          <h2 class="section-title">Experiment Plan</h2>
+          <ul class="metrics">
+            <li class="metric">
+              <div class="metric-main">
+                <div class="metric-title">Users Required</div>
+                <div class="metric-desc">After <span id="out-users-text"></span> users have been exposed to your experiment, you'll be able to detect a change as large as <span id="out-mde-text"></span> (the MDE). This means that if your actual observed effect is <span id="out-mde-text-2"></span> or larger, you'll reach stat sig at <span id="out-users-text-2"></span> users.</div>
+              </div>
+              <div class="metric-value" id="out-usersRequired">—</div>
+            </li>
+            <li class="metric">
+              <div class="metric-main">
+                <div class="metric-title">Experiment Duration (Days)</div>
+                <div class="metric-desc">You should expect to achieve statistical significance on day <span id="out-statsigDay-2"></span>, if your observed effect is <span id="out-mde-text-3"></span> or bigger.</div>
+              </div>
+              <div class="metric-value" id="out-statsigDay">—</div>
+            </li>
+            <li class="metric">
+              <div class="metric-main">
+                <div class="metric-title">Stat Sig in 1 Cycle?</div>
+                <div class="metric-desc">Whether significance is likely to be achieved within the first business cycle.</div>
+              </div>
+              <div class="metric-badge-yes" id="out-statsigFirstCycle">—</div>
+            </li>
+            <li class="metric" id="cycles-needed-row">
+              <div class="metric-main">
+                <div class="metric-title">Cycles to Reach Stat Sig</div>
+                <div class="metric-desc">Number of business cycles required to detect a change of <span id="out-mde-text-4"></span>. If you are using a T-Test, you should only consider results valid at the end of cycle <span id="out-cyclesNeeded-4"></span>. If you are using a sequential testing calculator, you can check results after each cycle and if there is a larger-than-expected effect, you can stop the test early. </div>
+              </div>
+              <div class="metric-value" id="out-cyclesNeeded">—</div>
+            </li>
+            <li class="metric">
+              <div class="metric-main">
+                <div class="metric-title">Users to Target</div>
+                <div class="metric-desc">If your observed uplift is  <span id="out-mde-text-5"></span> larger, you can reduce your experiment targeting to a <span id="out-targetPct-2"></span> of your total users and still achieve stat sig in <span id="out-cyclesNeeded-2"></span> cycles. </div>
+              </div>
+              <div class="metric-value" id="out-targetPct">—</div>
+            </li>
+            <li class="metric">
+              <div class="metric-main">
+                <div class="metric-title">Or Lower MDE to</div>
+                <div class="metric-desc">If you run for the full <span id="out-cyclesNeeded-3"></span> cycles and don't reduce the targeting percent, you can expect to detect a change as small as <span id="out-lowerMdePossible-2"></span>.</div>
+              </div>
+              <div class="metric-value" id="out-lowerMdePossible">—</div>
+            </li>
+          </ul>
+          </div>
+
+          <div class="card collapsible-card duration-group" id="scenarios-card">
+            <div class="card-header">
+              <h2 class="section-title">Scenarios</h2>
+              <button type="button" class="icon-button" id="scenarios-toggle" aria-expanded="false" aria-controls="scenarios-collapsible" title="Expand">
+                <span class="caret" aria-hidden="true">^</span>
+              </button>
+            </div>
+            <div class="collapsible" id="scenarios-collapsible" aria-hidden="true">
+              <div class="collapsible-inner">
+                <div class="metric-box">
+
+                  <div class="metric-main">
+                    <div class="metric-title">Desired Experiment Duration (cycles)</div>
+                  </div>
+                  <div class="slider-wrap">
+                    <input type="range" id="desiredDuration" min="1" max="4" step="1" value="1" aria-label="Desired Experiment Duration" />
+                  </div>
+                  <div class="slider-ticks" aria-hidden="true">
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                  </div>
+                  <br class="metric-desc">
+                  <div class="metric-desc">Drag the slider to see the impact of a shorter or longer test on MDE, Baseline Conversion Rate or User Targeting</div>
+
+                </div>
+                <ul class="metrics">
+                  <li class="metric">
+                    <div class="metric-main">
+                      <div class="metric-title">Your MDE would be</div>
+                      <div class="metric-desc">You would be able to detect a change of <span id="dur-out-mde-text"></span> or larger. </div>
+                    </div>
+                    <div class="metric-value" id="dur-out-mde">—</div>
+                  </li>
+                  <li class="metric">
+                    <div class="metric-main">
+                      <div class="metric-title">OR your baseline CR needs to be</div>
+                      <div class="metric-desc">If you pick an experiment metric a conversion rate of <span id="dur-out-baseline-cr-text"></span> or higher, you can reach stat sig in  <span id="dur-out-cycles-needed-text-2"></span> cycles. </div>
+                    </div>
+                    <div class="metric-value" id="dur-out-baseline-cr">—</div>
+                  </li>
+                  <li class="metric">
+                    <div class="metric-main">
+                      <div class="metric-title">OR you would need number of users exposed to be</div>
+                      <div class="metric-desc"> You would need to change experiment targeting criteria, or change the page/screen where the experiment runs, to expose <span id="dur-out-users-needed-text-2"></span> users in <span id="dur-out-cycles-needed-text-3"></span> cycles. </div>
+
+                    </div>
+                    <div class="metric-value" id="dur-out-users-needed">—</div>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="footer">
+      </footer>
+    </main>
+
+    <script type="module">
+      import { calculateABTestPlan } from './calc.js';
+      const toggle = document.getElementById('stats-toggle');
+      const collapsible = document.getElementById('stats-collapsible');
+      const scenariosToggle = document.getElementById('scenarios-toggle');
+      const scenariosCollapsible = document.getElementById('scenarios-collapsible');
+      const bonferroni = document.getElementById('bonferroni');
+      const showMetricDesc = document.getElementById('showMetricDesc');
+      const METRIC_DESC_KEY = 'ep_showMetricDesc';
+      const baselineCRHidden = document.getElementById('baselineCR');
+      const baselineCRDisplay = document.getElementById('baselineCRDisplay');
+      const mdeHidden = document.getElementById('mde');
+      const mdeDisplay = document.getElementById('mdeDisplay');
+      const durationSlider = document.getElementById('desiredDuration');
+      let lastResult = null;
+
+      function setCollapsed(isCollapsed) {
+        const inner = collapsible.querySelector('.collapsible-inner');
+        if (isCollapsed) {
+          const currentHeight = inner.getBoundingClientRect().height;
+          collapsible.style.height = currentHeight + 'px';
+          requestAnimationFrame(() => {
+            collapsible.style.height = '0px';
+            collapsible.setAttribute('aria-hidden', 'true');
+          });
+          toggle.setAttribute('aria-expanded', 'false');
+        } else {
+          collapsible.setAttribute('aria-hidden', 'false');
+          const targetHeight = inner.getBoundingClientRect().height;
+          collapsible.style.height = targetHeight + 'px';
+          toggle.setAttribute('aria-expanded', 'true');
+          const onEnd = () => {
+            collapsible.style.height = 'auto';
+            collapsible.removeEventListener('transitionend', onEnd);
+          };
+          collapsible.addEventListener('transitionend', onEnd);
+        }
+      }
+
+      function setCollapsedFor(elemCollapsible, elemToggle, isCollapsed) {
+        const inner = elemCollapsible.querySelector('.collapsible-inner');
+        if (isCollapsed) {
+          const currentHeight = inner.getBoundingClientRect().height;
+          elemCollapsible.style.height = currentHeight + 'px';
+          requestAnimationFrame(() => {
+            elemCollapsible.style.height = '0px';
+            elemCollapsible.setAttribute('aria-hidden', 'true');
+          });
+          elemToggle.setAttribute('aria-expanded', 'false');
+        } else {
+          elemCollapsible.setAttribute('aria-hidden', 'false');
+          const targetHeight = inner.getBoundingClientRect().height;
+          elemCollapsible.style.height = targetHeight + 'px';
+          elemToggle.setAttribute('aria-expanded', 'true');
+          const onEnd = () => {
+            elemCollapsible.style.height = 'auto';
+            elemCollapsible.removeEventListener('transitionend', onEnd);
+          };
+          elemCollapsible.addEventListener('transitionend', onEnd);
+        }
+      }
+
+      // Initialize collapsed by default
+      collapsible.style.height = '0px';
+      collapsible.setAttribute('aria-hidden', 'true');
+      toggle.setAttribute('aria-expanded', 'false');
+
+      // Initialize scenarios collapsed by default
+      scenariosCollapsible.style.height = '0px';
+      scenariosCollapsible.setAttribute('aria-hidden', 'true');
+      scenariosToggle.setAttribute('aria-expanded', 'false');
+
+      toggle.addEventListener('click', () => {
+        const isHidden = collapsible.getAttribute('aria-hidden') === 'true';
+        setCollapsed(!isHidden);
+      });
+
+      scenariosToggle.addEventListener('click', () => {
+        const isHidden = scenariosCollapsible.getAttribute('aria-hidden') === 'true';
+        setCollapsedFor(scenariosCollapsible, scenariosToggle, !isHidden);
+      });
+
+      // Keep aria-checked in sync for the glass toggle
+      function syncAria() {
+        if (bonferroni) bonferroni.setAttribute('aria-checked', bonferroni.checked ? 'true' : 'false');
+        if (showMetricDesc) showMetricDesc.setAttribute('aria-checked', showMetricDesc.checked ? 'true' : 'false');
+      }
+
+      function applyMetricDescVisibility() {
+        const shouldShow = !showMetricDesc || showMetricDesc.checked;
+        document.body.classList.toggle('hide-metric-desc', !shouldShow);
+      }
+
+      function loadMetricDescSetting() {
+        if (!showMetricDesc) return;
+        try {
+          const stored = localStorage.getItem(METRIC_DESC_KEY);
+          if (stored !== null) {
+            showMetricDesc.checked = (stored === 'true');
+          }
+        } catch (_) {}
+      }
+
+      function saveMetricDescSetting() {
+        if (!showMetricDesc) return;
+        try {
+          localStorage.setItem(METRIC_DESC_KEY, showMetricDesc.checked ? 'true' : 'false');
+        } catch (_) {}
+      }
+
+      bonferroni.addEventListener('change', syncAria);
+      if (showMetricDesc) {
+        showMetricDesc.addEventListener('change', () => {
+          syncAria();
+          applyMetricDescVisibility();
+          saveMetricDescSetting();
+        });
+      }
+      loadMetricDescSetting();
+      syncAria();
+      applyMetricDescVisibility();
+
+      // Sync percent display fields with hidden fractional inputs
+      function initPercentField(displayEl, hiddenEl) {
+        // Initialize from hidden to display (e.g., 0.06 -> 6)
+        const num = parseFloat(hiddenEl.value);
+        if (!Number.isNaN(num)) displayEl.value = Math.round(num * 100);
+
+        displayEl.addEventListener('input', () => {
+          const pct = parseFloat(displayEl.value);
+          if (Number.isNaN(pct)) return;
+          hiddenEl.value = String(pct / 100);
+        });
+
+        displayEl.addEventListener('change', () => {
+          // Clamp 0..100 and round to integer percentage steps
+          let pct = Math.round(Math.min(100, Math.max(0, parseFloat(displayEl.value || '0'))));
+          displayEl.value = String(pct);
+          hiddenEl.value = String(pct / 100);
+        });
+      }
+
+      initPercentField(baselineCRDisplay, baselineCRHidden);
+      initPercentField(mdeDisplay, mdeHidden);
+
+      // On load, if query params exist, apply them to form inputs and run plan
+      const appliedFromUrl = applyQueryParamsToForm(document.getElementById('experiment-form'));
+      if (appliedFromUrl) {
+        planExperiment(false);
+      }
+      // Ensure description visibility reflects any URL-applied state
+      applyMetricDescVisibility();
+      saveMetricDescSetting();
+
+      // Simple format helpers
+      function formatInt(n) {
+        return Number.isFinite(n) ? Math.round(n).toLocaleString() : '—';
+      }
+      function formatPct(x, decimals = 0) {
+        return Number.isFinite(x) ? (x * 100).toFixed(decimals) + '%' : '—';
+      }
+      function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      }
+
+      function updateDurationOutputs() {
+        if (!lastResult) return;
+        const sliderVal = parseInt(durationSlider.value || '1', 10);
+        let mdeVal;
+        let baselineCrVal;
+        switch (sliderVal) {
+          case 1:
+            mdeVal = lastResult.MdeFor1Cycle;
+            baselineCrVal = lastResult.baselineCRFor1Cycle;
+            break;
+          case 2:
+            mdeVal = lastResult.MdeFor2Cycles;
+            baselineCrVal = lastResult.baselineCRFor2Cycles;
+            break;
+          case 3:
+            mdeVal = lastResult.MdeFor3Cycles;
+            baselineCrVal = lastResult.baselineCRFor3Cycles;
+            break;
+          case 4:
+          default:
+            mdeVal = lastResult.MdeFor4Cycles;
+            baselineCrVal = lastResult.baselineCRFor4Cycles;
+            break;
+        }
+        setText('dur-out-mde', formatPct(mdeVal, 1));
+        setText('dur-out-baseline-cr', formatPct(baselineCrVal, 1));
+        setText('dur-out-mde-text', formatPct(mdeVal, 1));
+        setText('dur-out-baseline-cr-text', formatPct(baselineCrVal, 1));
+        setText('dur-out-users-needed-text-2', formatInt(lastResult.usersRequired));
+        setText('dur-out-cycles-needed-text-2', formatInt(sliderVal));
+        setText('dur-out-cycles-needed-text-3', formatInt(sliderVal));
+        // Always show usersRequired regardless of slider position
+        setText('dur-out-users-needed', formatInt(lastResult.usersRequired));
+      }
+
+      function serializeFormToQuery(formEl) {
+        const params = new URLSearchParams(window.location.search);
+        const elements = Array.from(formEl.elements || []);
+        elements.forEach((el) => {
+          if (!el) return;
+          const tag = el.tagName;
+          if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') return;
+          const key = el.name || el.id;
+          if (!key) return;
+          if (key === 'baselineCR' || key === 'mde') return; // exclude hidden fractional fields
+          let value;
+          if (el.type === 'checkbox') {
+            value = el.checked ? 'true' : 'false';
+          } else if (el.type === 'radio') {
+            if (!el.checked) return;
+            value = el.value;
+          } else {
+            value = el.value;
+          }
+          if (value === '' || value == null) {
+            params.delete(key);
+          } else {
+            params.set(key, value);
+          }
+        });
+        return params;
+      }
+
+      function applyQueryParamsToForm(formEl) {
+        const params = new URLSearchParams(window.location.search);
+        if (params.size === 0) return false; // nothing to apply
+        params.forEach((val, key) => {
+          if (key === 'baselineCR' || key === 'mde') return; // ignore hidden fractional fields
+          const el = formEl.elements.namedItem(key) || document.getElementById(key);
+          if (!el) return;
+          if (el.type === 'checkbox') {
+            el.checked = String(val).toLowerCase() === 'true';
+          } else if (el.type === 'radio') {
+            const radios = formEl.querySelectorAll(`input[name="${key}"][type="radio"]`);
+            if (radios && radios.length) {
+              radios.forEach(r => { r.checked = (r.value === val); });
+            } else {
+              el.value = val;
+            }
+          } else {
+            el.value = val;
+          }
+        });
+        // Keep hidden fractional fields in sync if percent displays were provided
+        const bDisp = document.getElementById('baselineCRDisplay');
+        const mDisp = document.getElementById('mdeDisplay');
+        const bHidden = document.getElementById('baselineCR');
+        const mHidden = document.getElementById('mde');
+        if (bDisp && bHidden && params.has('baselineCRDisplay')) {
+          let pct = parseFloat(bDisp.value || '');
+          if (!Number.isNaN(pct)) {
+            pct = Math.round(Math.min(100, Math.max(0, pct)));
+            bDisp.value = String(pct);
+            bHidden.value = String(pct / 100);
+          }
+        }
+        if (mDisp && mHidden && params.has('mdeDisplay')) {
+          let pct = parseFloat(mDisp.value || '');
+          if (!Number.isNaN(pct)) {
+            pct = Math.round(Math.min(100, Math.max(0, pct)));
+            mDisp.value = String(pct);
+            mHidden.value = String(pct / 100);
+          }
+        }
+        // Sync ARIA for any toggles changed
+        syncAria();
+        return true;
+      }
+
+      function planExperiment(updateUrl = true) {
+        const data = {
+          businessCycleDays: parseFloat(document.getElementById('businessCycleDays').value),
+          power: parseFloat(document.getElementById('power').value),
+          confidence: parseFloat(document.getElementById('confidence').value),
+          visitorsPerDay: parseFloat(document.getElementById('visitorsPerDay').value),
+          visitorsPerWeek: parseFloat(document.getElementById('visitorsPerWeek').value),
+          visitorsPerMonth: parseFloat(document.getElementById('visitorsPerMonth').value),
+          visitorsPer2Months: parseFloat(document.getElementById('visitorsPer2Months').value),
+          baselineCR: parseFloat(document.getElementById('baselineCR').value),
+          numVariants: parseFloat(document.getElementById('numVariants').value),
+          bonferroni: document.getElementById('bonferroni').checked,
+          mde: parseFloat(document.getElementById('mde').value),
+        };
+        const result = calculateABTestPlan(data);
+        // Wire up selected outputs
+        setText('out-usersRequired', formatInt(result.usersRequired));
+        setText('out-users-text', formatInt(result.usersRequired));
+        setText('out-users-text-2', formatInt(result.usersRequired));
+        setText('out-mde-text', formatPct(data.mde, 1));
+        setText('out-mde-text-2', formatPct(data.mde, 1));
+        setText('out-mde-text-3', formatPct(data.mde, 1));
+        setText('out-mde-text-4', formatPct(data.mde, 1));
+        setText('out-mde-text-5', formatPct(data.mde, 1));
+        setText('out-targetPct-2', formatPct(result.targetPct, 0));
+        setText('out-cyclesNeeded-2', formatInt(result.cyclesNeeded));
+        setText('out-cyclesNeeded-3', formatInt(result.cyclesNeeded));
+        setText('out-cyclesNeeded-4', formatInt(result.cyclesNeeded));
+        setText('out-lowerMdePossible-2', formatPct(result.lowerMdePossible, 1));
+        setText('out-statsigDay', formatInt(result.statsigDay));
+        setText('out-statsigDay-2', formatInt(result.statsigDay));
+        setText('out-statsigFirstCycle', result.statsigFirstCycle ? 'Yes' : 'No');
+
+        //Hide cycles needed if its 1
+        if (result.statsigFirstCycle == true) {
+          document.getElementById('out-statsigFirstCycle').classList.add('metric-badge-yes');
+          document.getElementById('out-statsigFirstCycle').classList.remove('metric-badge-no');
+          document.getElementById('cycles-needed-row').style.display = 'none';
+        } else {
+          document.getElementById('cycles-needed-row').style.display = 'grid';
+          document.getElementById('out-statsigFirstCycle').classList.add('metric-badge-no');
+          document.getElementById('out-statsigFirstCycle').classList.remove('metric-badge-yes');
+        }
+
+        setText('out-cyclesNeeded', formatInt(result.cyclesNeeded));
+        setText('out-targetPct', formatPct(result.targetPct, 0));
+        setText('out-lowerMdePossible', formatPct(result.lowerMdePossible, 1));
+
+        // Store result and update duration-dependent outputs
+        lastResult = result;
+        updateDurationOutputs();
+
+        if (updateUrl) {
+          // Update URL with current form inputs (without reloading)
+          const formEl = document.getElementById('experiment-form');
+          const params = serializeFormToQuery(formEl);
+          const newUrl = window.location.pathname + '?' + params.toString();
+          history.replaceState(null, '', newUrl);
+        }
+      }
+
+      const planBtn = document.getElementById('plan-btn');
+      planBtn.addEventListener('click', () => {
+        planExperiment(true);
+      });
+
+      // Share button: copy URL with current query params and show toast
+      const shareBtn = document.getElementById('share-btn');
+      const shareToast = document.getElementById('share-toast');
+      if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+          const formEl = document.getElementById('experiment-form');
+          const params = serializeFormToQuery(formEl);
+          const url = window.location.origin + window.location.pathname + '?' + params.toString();
+          try {
+            await navigator.clipboard.writeText(url);
+          } catch (e) {
+            // Fallback: create temp textarea
+            const ta = document.createElement('textarea');
+            ta.value = url;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (_) {}
+            document.body.removeChild(ta);
+          }
+          // Show toast briefly
+          if (shareToast) {
+            shareToast.classList.add('show');
+            setTimeout(() => shareToast.classList.remove('show'), 1400);
+          }
+        });
+      }
+
+      // Update duration outputs when slider changes
+      durationSlider.addEventListener('input', updateDurationOutputs);
+    </script>
+  </body>
+  </html>
+
+
