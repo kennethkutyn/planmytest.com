@@ -158,9 +158,9 @@
               </div>
 
             </div>
-            <div class="metric-desc"><b>Business Cycle:</b> If you have different types of users, or they behavaive differently over time, you should avoid making experiment decisions on a fraction of a cycle. Instead, plan you test for a whole number of cycles.  </div>
+            <div class="metric-desc"><b>Business Cycle:</b> If you have different types of users, or they behaive differently over time, you should avoid making experiment decisions on a fraction of a cycle. Instead, plan you test for a whole number of cycles.  </div>
             <br class="metric-desc">
-            <div class="metric-desc"><b>Number of Variants:</b> All else being equal, more variants will take more time to reach statistical significance. However, if additional variants mean one of them has a larger effect, this could let you use a larger value for MDE, thus shortening the experiment overall.   </div>
+            <div class="metric-desc"><b>Number of Variants:</b> All else being equal, more variants will take more time to reach statistical significance. However, if additional variants mean one of them has a larger effect, this could let you use a larger value for MDE, thus shortening the experiment overall. This number counts the control (so an A/B test is 2 variants).  </div>
             <br class="metric-desc">
             <div class="metric-desc"><b>Baseline Conversion Rate:</b> This is the conversion rate of the experiment's primary metric, expressed as conversions / impressions * 100. A lower baseline conversion rate will be harder to detect changes against, so you can get results sooner with a higher baseline conversion rate.   </div>
             <br class="metric-desc">
@@ -209,7 +209,7 @@
             <li class="metric">
               <div class="metric-main">
                 <div class="metric-title">Users to Target</div>
-                <div class="metric-desc">If your observed uplift is  <span id="out-mde-text-5"></span> larger, you can reduce your experiment targeting to a <span id="out-targetPct-2"></span> of your total users and still achieve stat sig in <span id="out-cyclesNeeded-2"></span> cycles. </div>
+                <div class="metric-desc">If your observed uplift is  <span id="out-mde-text-5"></span> or larger, you can set your experiment targeting to <span id="out-targetPct-2"></span> of your total users and still achieve stat sig in <span id="out-cyclesNeeded-2"></span> cycles. </div>
               </div>
               <div class="metric-value" id="out-targetPct">—</div>
             </li>
@@ -303,6 +303,32 @@
       import { calculateABTestPlan } from './calc.js';
 
 
+
+      // Initialize Amplitude early so it's available before any calls
+      // Try accessing the individual SDKs
+      console.log('Available methods:', Object.keys(window.AmplitudeUnified));
+
+      const amplitude = window.AmplitudeUnified.createInstance();
+      amplitude.init(
+        '51c2611ae7d456f33b65ceaa38dded70',
+        null,
+        {
+          defaultTracking: {
+            pageViews: true,
+            sessions: true,
+            formInteractions: true,
+            fileDownloads: true
+          }
+        }
+      );
+
+      if (window.AmplitudeUnified.sessionReplay) {
+        window.AmplitudeUnified.sessionReplay.init('51c2611ae7d456f33b65ceaa38dded70', {
+          sampleRate: 1
+        });
+      }
+
+      amplitude.track('Start Session');
 
       const toggle = document.getElementById('stats-toggle');
       const collapsible = document.getElementById('stats-collapsible');
@@ -451,12 +477,11 @@
       // On load, if query params exist, apply them to form inputs and run plan
       const appliedFromUrl = applyQueryParamsToForm(document.getElementById('experiment-form'));
       if (appliedFromUrl) {
-        // If URL params changed the toggle, persist the new state
+        // URL params may change form inputs (not local-only preferences)
         applyMetricDescVisibility();
-        saveMetricDescSetting();
         planExperiment(false);
       } else {
-        // If not overridden by URL, ensure visibility reflects stored/default state, but don't resave
+        // Reflect stored/default state
         applyMetricDescVisibility();
       }
 
@@ -527,7 +552,7 @@
           if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') return;
           const key = el.name || el.id;
           if (!key) return;
-          if (key === 'baselineCR' || key === 'mde') return; // exclude hidden fractional fields
+          if (key === 'baselineCR' || key === 'mde' || key === 'showMetricDesc') return; // exclude hidden fractional fields and local-only preference
           let value;
           if (el.type === 'checkbox') {
             value = el.checked ? 'true' : 'false';
@@ -550,7 +575,7 @@
         const params = new URLSearchParams(window.location.search);
         if (params.size === 0) return false; // nothing to apply
         params.forEach((val, key) => {
-          if (key === 'baselineCR' || key === 'mde') return; // ignore hidden fractional fields
+          if (key === 'baselineCR' || key === 'mde' || key === 'showMetricDesc') return; // ignore hidden fractional fields and local-only preference
           const el = formEl.elements.namedItem(key) || document.getElementById(key);
           if (!el) return;
           if (el.type === 'checkbox') {
@@ -692,39 +717,6 @@
       // Update duration outputs when slider changes
       durationSlider.addEventListener('input', updateDurationOutputs);
     
-      
-
-// Try accessing the individual SDKs
-console.log('Available methods:', Object.keys(window.AmplitudeUnified));
-
-// Try the traditional approach with createInstance
-const amplitude = window.AmplitudeUnified.createInstance();
-amplitude.init(
-  '51c2611ae7d456f33b65ceaa38dded70', // API key
-  null, // no user ID
-  { // config object
-    defaultTracking: {
-      pageViews: true,
-      sessions: true,
-      formInteractions: true,
-      fileDownloads: true
-    }
-  }
-);
-
-// Initialize session replay separately
-if (window.AmplitudeUnified.sessionReplay) {
-  window.AmplitudeUnified.sessionReplay.init('51c2611ae7d456f33b65ceaa38dded70', {
-    sampleRate: 1
-  });
-}
-
-
-amplitude.track('Start Session');
-
-
-
-
       
     
     </script>
