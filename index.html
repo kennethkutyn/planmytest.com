@@ -80,46 +80,7 @@
 
           </div>
 
-          <div class="card collapsible-card" id="stats-card">
-            <div class="card-header">
-              <h2 class="section-title">Statistical settings</h2>
-              <button type="button" class="icon-button" id="stats-toggle" aria-expanded="false" aria-controls="stats-collapsible" title="Expand">
-                <span class="caret" aria-hidden="true">^</span>
-              </button>
-            </div>
-            <div class="collapsible" id="stats-collapsible" aria-hidden="true">
-              <div class="collapsible-inner">
-                <div class="section">
-                  <div class="form-grid">
-                    <div class="form-field">
-                      <label for="power">Power</label>
-                      <input type="number" id="power" name="power" min="0" max="1" step="0.01" value="0.8" />
-                    </div>
-                    <div class="form-field">
-                      <label for="confidence">Confidence</label>
-                      <input type="number" id="confidence" name="confidence" min="0" max="1" step="0.01" value="0.95" />
-                    </div>
-                    <div class="form-field full">
-                      <div class="switch-wrap">
-                        <span class="switch-text">Apply Bonferroni correction</span>
-                        <input class="switch-input" type="checkbox" id="bonferroni" name="bonferroni" checked role="switch" aria-checked="true" />
-                        <label class="switch" for="bonferroni" aria-hidden="true">
-                          <span class="switch-track"></span>
-                          <span class="switch-thumb"></span>
-                        </label>
 
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-                <div class="metric-desc"><b>Bonferroni Correction:</b> Experiments with more than 2 variants have a higher error rate (each comparison is a chance to make a mistake). A Bonferroni Correction automatically adjust the number of users required to keep error rate constant when comparing more than 2 variants (and there is no impact to tests with only 2 variants).</div>
-
-              </div>
-            </div>
-          </div>
 
           <div class="card">
             <div class="section">
@@ -160,12 +121,53 @@
             </div>
             <div class="metric-desc"><b>Business Cycle:</b> If you have different types of users, or they behaive differently over time, you should avoid making experiment decisions on a fraction of a cycle. Instead, plan you test for a whole number of cycles.  </div>
             <br class="metric-desc">
-            <div class="metric-desc"><b>Number of Variants:</b> All else being equal, more variants will take more time to reach statistical significance. However, if additional variants mean one of them has a larger effect, this could let you use a larger value for MDE, thus shortening the experiment overall. This number counts the control (so an A/B test is 2 variants).  </div>
+            <div class="metric-desc"><b>Number of Variants:</b> All else being equal, more variants will take more time to reach statistical significance. However, if additional variants mean one of them has a larger effect, this could let you use a larger value for MDE, thus shortening the experiment overall. This number counts the control (so an A/B test is 2 variants), and assumes equal traffic distribution between all variants.  </div>
             <br class="metric-desc">
             <div class="metric-desc"><b>Baseline Conversion Rate:</b> This is the conversion rate of the experiment's primary metric, expressed as conversions / impressions * 100. A lower baseline conversion rate will be harder to detect changes against, so you can get results sooner with a higher baseline conversion rate.   </div>
             <br class="metric-desc">
             <div class="metric-desc"><b>MDE:</b> This is the minimum size of effect (caused by the treatment variant) that you want to be able to detect, relative to the conversion rate of the baseline. In other words, what is the smallest impact that is meaningful and worht running the test for. A smaller MDE will mean that the experiment takes longer to run. </div>
 
+          </div>
+
+          <div class="card collapsible-card" id="stats-card">
+            <div class="card-header">
+              <h2 class="section-title">Statistical settings</h2>
+              <button type="button" class="icon-button" id="stats-toggle" aria-expanded="false" aria-controls="stats-collapsible" title="Expand">
+                <span class="caret" aria-hidden="true">^</span>
+              </button>
+            </div>
+            <div class="collapsible" id="stats-collapsible" aria-hidden="true">
+              <div class="collapsible-inner">
+                <div class="section">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label for="power">Power</label>
+                      <input type="number" id="power" name="power" min="0" max="1" step="0.01" value="0.8" />
+                    </div>
+                    <div class="form-field">
+                      <label for="confidence">Confidence</label>
+                      <input type="number" id="confidence" name="confidence" min="0" max="1" step="0.01" value="0.95" />
+                    </div>
+                    <div class="form-field full">
+                      <div class="switch-wrap">
+                        <span class="switch-text">Apply Bonferroni correction</span>
+                        <input class="switch-input" type="checkbox" id="bonferroni" name="bonferroni" checked role="switch" aria-checked="true" />
+                        <label class="switch" for="bonferroni" aria-hidden="true">
+                          <span class="switch-track"></span>
+                          <span class="switch-thumb"></span>
+                        </label>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+                <div class="metric-desc"><b>Bonferroni Correction:</b> Experiments with more than 2 variants have a false positive rate (each comparison between treatment and control is a chance to detect an uplift that doesn't actually exist). A Bonferroni Correction automatically adjusts the number of users required to keep error rate constant when comparing more than 2 variants (and there is no impact to tests with only 2 variants).</div>
+
+              </div>
+            </div>
           </div>
 
           <div class="form-actions">
@@ -299,14 +301,13 @@
       </footer>
     </main>
     <script src="amplitude-unified.js"></script>
+    <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.19.3-min.js.gz"></script>
+
     <script type="module">
       import { calculateABTestPlan } from './calc.js';
 
-
-
       // Initialize Amplitude early so it's available before any calls
       // Try accessing the individual SDKs
-      console.log('Available methods:', Object.keys(window.AmplitudeUnified));
 
       const amplitude = window.AmplitudeUnified.createInstance();
       amplitude.init(
@@ -322,11 +323,13 @@
         }
       );
 
-      if (window.AmplitudeUnified.sessionReplay) {
-        window.AmplitudeUnified.sessionReplay.init('51c2611ae7d456f33b65ceaa38dded70', {
-          sampleRate: 1
+      // 1) Create & add the Session Replay plugin
+      const srPlugin = window.sessionReplay.plugin({
+          sampleRate: 1,          // 0..1; use something like 0.05 in prod
+          // serverZone: 'EU',    // uncomment if your Amplitude project is in EU
+          // debugMode: true,     // helpful during local testing
         });
-      }
+        amplitude.add(srPlugin);
 
       amplitude.track('Start Session');
 
