@@ -41,7 +41,7 @@ export function calculateABTestPlan({
     const statsigFirstCycle = statsigDay <= businessCycleDays;
     
     const cyclesNeeded = Math.ceil(statsigDay / businessCycleDays);
-
+    
     const daysInCyclesNeeded = cyclesNeeded * businessCycleDays;
 
     const usersInDaysNeeded = calculateUsersInDaysNeeded({daysPer1Cycle, daysPer2Cycles, daysPer3Cycles, daysPer4Cycles, anchor1, anchor2, anchor3, anchor4, visitorsPerDay, visitorsPerWeek, visitorsPerMonth, visitorsPer2Months, usersRequired, daysInCyclesNeeded});
