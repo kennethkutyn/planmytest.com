@@ -332,6 +332,8 @@
     </main>
     <script src="amplitude-unified.js"></script>
     <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.19.3-min.js.gz"></script>
+    <script src="https://cdn.amplitude.com/script/51c2611ae7d456f33b65ceaa38dded70.engagement.js"></script>
+
 
 
     <script type="module">
@@ -361,6 +363,10 @@
           // debugMode: true,     // helpful during local testing
         });
         amplitude.add(srPlugin);
+
+      // Add Guides & Surveys plugin
+
+      amplitude.add(window.engagement.plugin());
 
       amplitude.track('Start Session');
 
